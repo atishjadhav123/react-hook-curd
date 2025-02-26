@@ -13,6 +13,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cors(
     { origin: true, credentials: true }
 ))
+app.use(express.static("dist"))
 app.use("/uploads", express.static("uploads"))
 
 app.use("/api", userRoutes)
