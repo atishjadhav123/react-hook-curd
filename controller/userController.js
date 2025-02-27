@@ -152,7 +152,7 @@ const getUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, function*
         // Store data in Redis with expiration time (5 minutes)
         yield redisClient_1.default.set(cacheKey, JSON.stringify(users), "EX", 300);
         console.log("📦 Fetched from MongoDB & Cached in Redis");
-        return res.json(users);
+        return res.json({ message: "user find success", users });
     }
     catch (error) {
         console.error("Error fetching users:", error);

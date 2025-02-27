@@ -148,7 +148,7 @@ export const getUserProfile = async (req: Request, res: Response): Promise<any> 
         await redisClient.set(cacheKey, JSON.stringify(users), "EX", 300);
 
         console.log("📦 Fetched from MongoDB & Cached in Redis");
-        return res.json(users);
+        return res.json({ message: "user find success", users });
     } catch (error) {
         console.error("Error fetching users:", error);
         return res.status(500).json({ error: "Internal Server Error" });
