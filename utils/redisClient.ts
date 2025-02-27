@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const redisUrl = process.env.REDIS_URL || "127.0.0.1:6379";
+const redisUrl = process.env.REDIS_URL
 if (!redisUrl) {
     console.error("❌ REDIS_URL is missing in .env file");
     process.exit(1);

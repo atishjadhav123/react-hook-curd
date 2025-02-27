@@ -7,7 +7,7 @@ exports.redisClient = void 0;
 const ioredis_1 = __importDefault(require("ioredis"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-const redisUrl = process.env.REDIS_URL || "127.0.0.1:6379";
+const redisUrl = process.env.REDIS_URL;
 if (!redisUrl) {
     console.error("❌ REDIS_URL is missing in .env file");
     process.exit(1);
