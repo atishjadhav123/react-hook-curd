@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUserProfile = exports.deleteUser = exports.updateUser = exports.createUser = void 0;
 const cloudinary_1 = require("cloudinary");
 const user_1 = __importDefault(require("../model/user"));
-const redisClient_1 = require("../utils/redisClient");
+const redisClient_1 = __importDefault(require("../utils/redisClient"));
 const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log("Request body:", req.body);
@@ -46,7 +46,7 @@ const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         };
         const newUser = new user_1.default(userData);
         yield newUser.save();
-        yield redisClient_1.redisClient.set("users", JSON.stringify(yield user_1.default.find()), "EX", 3600);
+        yield redisClient_1.default.set("users", JSON.stringify(yield user_1.default.find()), "EX", 3600);
         res.status(201).json({ message: "User created successfully", user: newUser });
     }
     catch (error) {
@@ -105,7 +105,7 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             language: languages,
             profile: profileImageUrl,
         }, { new: true });
-        yield redisClient_1.redisClient.set("users", JSON.stringify(yield user_1.default.find()), "EX", 3600);
+        yield redisClient_1.default.set("users", JSON.stringify(yield user_1.default.find()), "EX", 3600);
         res.status(200).json({ message: "user update successfully", user: updateUser });
     }
     catch (error) {
@@ -128,7 +128,7 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             }
         }
         yield user_1.default.findByIdAndDelete(id);
-        yield redisClient_1.redisClient.set("users", JSON.stringify(yield user_1.default.find()), "EX", 3600);
+        yield redisClient_1.default.set("users", JSON.stringify(yield user_1.default.find()), "EX", 3600);
         res.status(200).json({ message: "User deleted successfully" });
     }
     catch (error) {
@@ -139,14 +139,19 @@ exports.deleteUser = deleteUser;
 const getUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const cacheKey = "allUsers";
-        const cachedData = yield redisClient_1.redisClient.get(cacheKey);
+        const cachedData = yield redisClient_1.default.get(cacheKey);
         if (cachedData) {
-            console.log("✅ Fetched from Redis");
+            console.log("✅ Fetched from Redis Cache");
             return res.json(JSON.parse(cachedData));
         }
-        const users = yield user_1.default.find();
-        yield redisClient_1.redisClient.set(cacheKey, JSON.stringify(users), "EX", 300); // Cache for 5 minutes
-        console.log("📦 Fetched from MongoDB");
+        // Fetch all users from MongoDB
+        const users = yield user_1.default.find().sort({ createdAt: -1 }); // Sort by latest users
+        if (!users.length) {
+            return res.status(404).json({ message: "No users found" });
+        }
+        // Store data in Redis with expiration time (5 minutes)
+        yield redisClient_1.default.set(cacheKey, JSON.stringify(users), "EX", 300);
+        console.log("📦 Fetched from MongoDB & Cached in Redis");
         return res.json(users);
     }
     catch (error) {

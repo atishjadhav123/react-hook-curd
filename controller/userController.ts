@@ -1,7 +1,7 @@
 import { v2 as cloudinary } from "cloudinary"
 import { Request, Response } from "express"
 import User from "../model/user"
-import { redisClient } from "../utils/redisClient"
+import redisClient from "../utils/redisClient"
 
 export const createUser = async (req: Request, res: Response): Promise<any> => {
     try {
@@ -133,14 +133,21 @@ export const getUserProfile = async (req: Request, res: Response): Promise<any> 
         const cachedData = await redisClient.get(cacheKey);
 
         if (cachedData) {
-            console.log("✅ Fetched from Redis");
+            console.log("✅ Fetched from Redis Cache");
             return res.json(JSON.parse(cachedData));
         }
 
-        const users = await User.find();
-        await redisClient.set(cacheKey, JSON.stringify(users), "EX", 300); // Cache for 5 minutes
+        // Fetch all users from MongoDB
+        const users = await User.find().sort({ createdAt: -1 }); // Sort by latest users
 
-        console.log("📦 Fetched from MongoDB");
+        if (!users.length) {
+            return res.status(404).json({ message: "No users found" });
+        }
+
+        // Store data in Redis with expiration time (5 minutes)
+        await redisClient.set(cacheKey, JSON.stringify(users), "EX", 300);
+
+        console.log("📦 Fetched from MongoDB & Cached in Redis");
         return res.json(users);
     } catch (error) {
         console.error("Error fetching users:", error);
