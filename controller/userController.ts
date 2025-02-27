@@ -132,6 +132,7 @@ export const getUserProfile = async (req: Request, res: Response): Promise<any> 
         const cachedUsers = await redisClient.get("users")
         if (cachedUsers) {
             console.log("serving from redis Cach")
+            console.log("serving redis")
             return res.status(200).json({ message: "data from cache", result: JSON.parse(cachedUsers) })
         }
         const result = await User.find()
