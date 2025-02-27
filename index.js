@@ -23,7 +23,7 @@ const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
-app.use((0, cors_1.default)({ origin: true, credentials: true }));
+app.use((0, cors_1.default)({ origin: "http://localhost:5173", credentials: true }));
 app.use(express_1.default.static("dist"));
 app.use("/uploads", express_1.default.static("uploads"));
 app.use("/api", userRoutes_1.default);
@@ -35,7 +35,7 @@ const PORT = Number(process.env.PORT) || 5000;
 (() => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield redisClient_1.redisClient.set("testKey", "Hello Redis");
-        const value = yield redisClient_1.redisClient.get("testKey");
+        const value = yield redisClient_1.redisClient.get("users");
         console.log("Retrieved from Redis:", value);
     }
     catch (err) {

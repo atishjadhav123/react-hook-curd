@@ -138,17 +138,20 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 exports.deleteUser = deleteUser;
 const getUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const cachedUsers = yield redisClient_1.redisClient.get("users");
-        if (cachedUsers) {
-            console.log("serving from redis Cach");
-            return res.status(200).json({ message: "data from cache", result: JSON.parse(cachedUsers) });
+        const cacheKey = "allUsers";
+        const cachedData = yield redisClient_1.redisClient.get(cacheKey);
+        if (cachedData) {
+            console.log("✅ Fetched from Redis");
+            return res.json(JSON.parse(cachedData));
         }
-        const result = yield user_1.default.find();
-        yield redisClient_1.redisClient.set("users", JSON.stringify(result), "EX", 3600);
-        res.status(200).json({ message: "Profile find success", result });
+        const users = yield user_1.default.find();
+        yield redisClient_1.redisClient.set(cacheKey, JSON.stringify(users), "EX", 300); // Cache for 5 minutes
+        console.log("📦 Fetched from MongoDB");
+        return res.json(users);
     }
     catch (error) {
-        res.status(500).json({ message: "Internal Server Error", error });
+        console.error("Error fetching users:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
     }
 });
 exports.getUserProfile = getUserProfile;

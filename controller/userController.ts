@@ -129,17 +129,22 @@ export const deleteUser = async (req: Request, res: Response): Promise<any> => {
 
 export const getUserProfile = async (req: Request, res: Response): Promise<any> => {
     try {
-        const cachedUsers = await redisClient.get("users")
-        if (cachedUsers) {
-            console.log("serving from redis Cach")
-            console.log("serving redis")
-            return res.status(200).json({ message: "data from cache", result: JSON.parse(cachedUsers) })
+        const cacheKey = "allUsers";
+        const cachedData = await redisClient.get(cacheKey);
+
+        if (cachedData) {
+            console.log("✅ Fetched from Redis");
+            return res.json(JSON.parse(cachedData));
         }
-        const result = await User.find()
-        await redisClient.set("users", JSON.stringify(result), "EX", 3600)
-        res.status(200).json({ message: "Profile find success", result })
+
+        const users = await User.find();
+        await redisClient.set(cacheKey, JSON.stringify(users), "EX", 300); // Cache for 5 minutes
+
+        console.log("📦 Fetched from MongoDB");
+        return res.json(users);
     } catch (error) {
-        res.status(500).json({ message: "Internal Server Error", error })
+        console.error("Error fetching users:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
     }
-}
+};
 

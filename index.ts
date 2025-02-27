@@ -30,7 +30,7 @@ const PORT = Number(process.env.PORT) || 5000;
 (async () => {
     try {
         await redisClient.set("testKey", "Hello Redis")
-        const value = await redisClient.get("testKey")
+        const value = await redisClient.get("users")
         console.log("Retrieved from Redis:", value)
     } catch (err) {
         console.error("Redis Error:", err)
